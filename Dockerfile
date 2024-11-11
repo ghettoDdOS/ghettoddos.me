@@ -4,7 +4,7 @@ ARG NODE_VERSION=22.11.0
 ARG PNPM_VERSION=9.12.3
 
 ################################################################################
-FROM node:${NODE_VERSION}-alpine as base
+FROM node:${NODE_VERSION}-alpine AS base
 
 WORKDIR /usr/src/app
 
@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/root/.npm \
     npm install -g pnpm@${PNPM_VERSION}
 
 ################################################################################
-FROM base as deps
+FROM base AS deps
 
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
@@ -20,7 +20,7 @@ RUN --mount=type=bind,source=package.json,target=package.json \
     pnpm install --prod --frozen-lockfile
 
 ################################################################################
-FROM deps as build
+FROM deps AS build
 
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
@@ -31,9 +31,9 @@ COPY . .
 RUN pnpm run build
 
 ################################################################################
-FROM base as final
+FROM base AS final
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 USER node
 
@@ -44,4 +44,4 @@ COPY --from=build /usr/src/app/dist ./dist
 
 EXPOSE 8080
 
-CMD pnpm serve -s -p 8080 dist
+CMD ["pnpm", "serve", "-s", "-p", "8080", "dist"]
